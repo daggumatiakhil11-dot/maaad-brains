@@ -53,7 +53,7 @@ export default function Home() {
     ];
   }, []);
 
-  // AI STREAMING TEXT
+  // STREAMING SUMMARY
 
   useEffect(() => {
     if (!summary) return;
@@ -95,7 +95,9 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `https://maaad-brains.onrender.com/search?query=${encodeURIComponent(query)}`
+        `https://maaad-brains.onrender.com/search?query=${encodeURIComponent(
+          query
+        )}`
       );
 
       const data = await response.json();
@@ -241,6 +243,7 @@ export default function Home() {
 
       <div className="relative z-10 p-2 lg:scale-[0.82] origin-top">
         <div className="grid grid-cols-12 gap-5 min-h-[calc(100vh-90px)]">
+          
           {/* LEFT */}
 
           <div className="col-span-3">
@@ -295,7 +298,9 @@ export default function Home() {
           <div className="col-span-6">
             <h1 className="text-[95px] xl:text-[105px] leading-[0.85] font-black tracking-tight mb-8">
               <span className="text-white">MAAAD</span>
+
               <br />
+
               <span className="bg-gradient-to-r from-cyan-300 via-blue-500 to-green-400 bg-clip-text text-transparent">
                 BRAINS
               </span>
@@ -414,16 +419,66 @@ export default function Home() {
 
           <div className="col-span-3">
             <div className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-8 h-full overflow-y-auto">
+              
+              {/* ANIMATED AI CORE */}
+
               <div className="flex justify-center mb-8">
-                <Image
-                  src="/logo.jpg"
-                  alt="AI Core"
-                  width={150}
-                  height={150}
-                  className="rounded-full border border-cyan-400/30"
-                  priority
-                />
+                <motion.div
+                  animate={{
+                    rotate: 360,
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    rotate: {
+                      duration: 10,
+                      repeat: Infinity,
+                      ease: "linear",
+                    },
+                    scale: {
+                      duration: 2,
+                      repeat: Infinity,
+                    },
+                  }}
+                  className="relative"
+                >
+                  <motion.div
+                    animate={{
+                      rotate: -360,
+                    }}
+                    transition={{
+                      duration: 20,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="absolute inset-[-18px] rounded-full border border-cyan-400/20"
+                  />
+
+                  <motion.div
+                    animate={{
+                      rotate: 360,
+                    }}
+                    transition={{
+                      duration: 15,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="absolute inset-[-35px] rounded-full border border-green-400/10"
+                  />
+
+                  <div className="absolute inset-0 bg-cyan-400 blur-[120px] opacity-30 rounded-full"></div>
+
+                  <Image
+                    src="/logo.jpg"
+                    alt="AI Core"
+                    width={150}
+                    height={150}
+                    className="relative rounded-full border border-cyan-400/30 shadow-[0_0_120px_rgba(0,255,255,0.25)]"
+                    priority
+                  />
+                </motion.div>
               </div>
+
+              {/* METRICS */}
 
               <div className="space-y-6">
                 {metrics.map((metric, index) => (

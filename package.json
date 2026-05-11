@@ -6,7 +6,16 @@
     "dev": "concurrently \"cd backend && python -m uvicorn main:app --reload\" \"cd frontend && npm run dev\""
   },
   "dependencies": {
-    "concurrently": "^9.0.1"
+    "concurrently": "^9.0.1",
+    "framer-motion": "^12.38.0",
+    "jspdf": "^4.2.1",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "@types/react": "^19.2.14",
+    "typescript": "^6.0.3"
   }
 }
-

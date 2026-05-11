@@ -1,16 +1,16 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
-import jsPDF from "jspdf";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import jsPDF from "jspdf";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
   const [summary, setSummary] = useState("");
   const [displayedSummary, setDisplayedSummary] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
 
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
     "> Neural matrix initialized",
@@ -18,27 +18,45 @@ export default function Home() {
     "> Global intelligence feeds synchronized",
   ]);
 
-  const [voiceActive, setVoiceActive] = useState(false);
+  const [particles, setParticles] = useState<
+    {
+      id: number;
+      width: number;
+      height: number;
+      left: number;
+      top: number;
+      color: string;
+    }[]
+  >([]);
+
+  // MOUNT FIX
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // PARTICLES
 
-  const [particles, setParticles] = useState<any[]>([]);
-
   useEffect(() => {
-    const generatedParticles = [...Array(70)].map((_, index) => ({
-      id: index,
-      width: Math.random() * 4 + 1,
-      height: Math.random() * 4 + 1,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      color:
-        index % 2 === 0
-          ? "rgba(0,255,255,0.8)"
-          : "rgba(0,255,120,0.8)",
-    }));
+    if (!mounted) return;
+
+    const generatedParticles = Array.from(
+      { length: 70 },
+      (_, index) => ({
+        id: index,
+        width: Math.floor(Math.random() * 4) + 1,
+        height: Math.floor(Math.random() * 4) + 1,
+        left: Math.floor(Math.random() * 100),
+        top: Math.floor(Math.random() * 100),
+        color:
+          index % 2 === 0
+            ? "rgba(0,255,255,0.8)"
+            : "rgba(0,255,120,0.8)",
+      })
+    );
 
     setParticles(generatedParticles);
-  }, []);
+  }, [mounted]);
 
   // METRICS
 
@@ -53,7 +71,7 @@ export default function Home() {
     ];
   }, []);
 
-  // STREAMING SUMMARY
+  // STREAMING EFFECT
 
   useEffect(() => {
     if (!summary) return;
@@ -70,7 +88,7 @@ export default function Home() {
       if (index >= summary.length) {
         clearInterval(interval);
       }
-    }, 15);
+    }, 10);
 
     return () => clearInterval(interval);
   }, [summary]);
@@ -82,7 +100,6 @@ export default function Home() {
 
     setLoading(true);
 
-    setResults([]);
     setSummary("");
     setDisplayedSummary("");
 
@@ -95,14 +112,12 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `https://maaad-brains.onrender.com/search?query=${encodeURIComponent(
+        `https://maaad-backend.onrender.com/search?query=${encodeURIComponent(
           query
         )}`
       );
 
       const data = await response.json();
-
-      setResults(data.results || []);
 
       setTimeout(() => {
         setSummary(
@@ -114,9 +129,9 @@ export default function Home() {
           "> Intelligence synthesis complete",
           "> Deep neural analysis generated",
         ]);
-      }, 1200);
+      }, 1000);
     } catch (error) {
-      console.error("SEARCH ERROR:", error);
+      console.error(error);
 
       setSummary(
         "Unable to connect to neural intelligence backend."
@@ -133,7 +148,8 @@ export default function Home() {
   const exportPDF = () => {
     const doc = new jsPDF();
 
-    doc.setFontSize(24);
+    doc.setFontSize(22);
+
     doc.text("MAAAD BRAINS REPORT", 20, 20);
 
     doc.setFontSize(12);
@@ -153,7 +169,7 @@ export default function Home() {
       (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Voice recognition not supported.");
+      alert("Voice recognition not supported");
       return;
     }
 
@@ -178,8 +194,15 @@ export default function Home() {
     };
   };
 
+  if (!mounted) {
+    return <main className="min-h-screen bg-black"></main>;
+  }
+
   return (
-    <main className="min-h-screen bg-black text-white relative overflow-y-auto">
+    <main
+      suppressHydrationWarning
+      className="min-h-screen bg-black text-white relative overflow-hidden"
+    >
       {/* BACKGROUND */}
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#00111f_0%,black_70%)]"></div>
@@ -187,7 +210,7 @@ export default function Home() {
       {/* GRID */}
 
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.08)_1px,transparent_1px)] bg-[size:80px_80px]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.08)_1px,transparent_1px)] bg-[size:80px_80px]" />
       </div>
 
       {/* PARTICLES */}
@@ -199,7 +222,7 @@ export default function Home() {
             y: [0, -180, 0],
             x: [0, 120, 0],
             opacity: [0.1, 1, 0.1],
-            scale: [1, 1.6, 1],
+            scale: [1, 1.5, 1],
           }}
           transition={{
             duration: 10 + index * 0.2,
@@ -241,18 +264,22 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative z-10 p-2 lg:scale-[0.82] origin-top">
-        <div className="grid grid-cols-12 gap-5 min-h-[calc(100vh-90px)]">
-          
+      {/* MAIN */}
+
+      <div className="relative z-10 p-3 scale-[0.88] origin-top">
+        <div className="grid grid-cols-12 gap-5 min-h-[calc(100vh-80px)]">
+
           {/* LEFT */}
 
           <div className="col-span-3">
             <div className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-6 h-full overflow-y-auto">
+
               <div className="text-cyan-400 uppercase tracking-[0.35em] text-sm mb-6">
                 AI AGENTS
               </div>
 
               <div className="space-y-5">
+
                 {[
                   ["Agent Nova", "Trend Forecasting"],
                   ["Agent Sigma", "Market Intelligence"],
@@ -261,10 +288,10 @@ export default function Home() {
                   ["Agent Orion", "Competitor Mapping"],
                 ].map((agent, index) => (
                   <motion.div
+                    key={index}
                     whileHover={{
                       scale: 1.03,
                     }}
-                    key={index}
                     className="p-5 rounded-3xl bg-cyan-500/5 border border-cyan-500/10"
                   >
                     <div className="flex items-center gap-3 mb-3">
@@ -289,6 +316,7 @@ export default function Home() {
                     </div>
                   </motion.div>
                 ))}
+
               </div>
             </div>
           </div>
@@ -296,21 +324,48 @@ export default function Home() {
           {/* CENTER */}
 
           <div className="col-span-6">
-            <h1 className="text-[95px] xl:text-[105px] leading-[0.85] font-black tracking-tight mb-8">
-              <span className="text-white">MAAAD</span>
 
-              <br />
+            <div className="mb-10">
 
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-500 to-green-400 bg-clip-text text-transparent">
-                BRAINS
-              </span>
-            </h1>
+              <div className="text-green-400 uppercase tracking-[0.4em] text-sm mb-4">
+                Autonomous Intelligence Core Active
+              </div>
+
+              <h1 className="text-[95px] leading-[0.85] font-black tracking-tight">
+                <span className="text-white">
+                  MAAAD
+                </span>
+
+                <br />
+
+                <span className="bg-gradient-to-r from-cyan-300 via-blue-500 to-green-400 bg-clip-text text-transparent">
+                  BRAINS
+                </span>
+              </h1>
+
+            </div>
 
             {/* SEARCH */}
 
             <div className="relative mb-8">
+
+              {loading && (
+                <motion.div
+                  animate={{
+                    opacity: [0.2, 1, 0.2],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                  }}
+                  className="absolute inset-0 rounded-[40px] border border-cyan-400/40 shadow-[0_0_120px_rgba(0,255,255,0.3)]"
+                />
+              )}
+
               <div className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-5">
+
                 <div className="flex items-center gap-4">
+
                   <input
                     type="text"
                     placeholder="Initialize neural intelligence scan..."
@@ -350,18 +405,23 @@ export default function Home() {
                       EXPORT
                     </button>
                   )}
+
                 </div>
+
               </div>
+
             </div>
 
             {/* TERMINAL */}
 
             <div className="bg-black/50 border border-green-400/20 rounded-[30px] p-6 mb-8 font-mono">
+
               <div className="text-green-400 mb-4 uppercase tracking-[0.3em] text-sm">
                 Neural Terminal
               </div>
 
               <div className="space-y-2 text-green-300 text-sm">
+
                 {terminalLogs.slice(-8).map((log, index) => (
                   <motion.div
                     key={index}
@@ -375,7 +435,9 @@ export default function Home() {
                     {log}
                   </motion.div>
                 ))}
+
               </div>
+
             </div>
 
             {/* SUMMARY */}
@@ -390,105 +452,161 @@ export default function Home() {
                   opacity: 1,
                   y: 0,
                 }}
-                className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-10 max-h-[700px] overflow-y-auto"
+                className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-10 max-h-[650px] overflow-y-auto"
               >
+
                 <div className="flex items-center gap-4 mb-8">
+
                   <div className="w-4 h-4 rounded-full bg-green-400"></div>
 
                   <h2 className="text-3xl font-black text-cyan-400">
                     Deep Intelligence Matrix
                   </h2>
+
                 </div>
 
-                <motion.p
-                  initial={{
-                    opacity: 0,
-                  }}
-                  animate={{
-                    opacity: 1,
-                  }}
-                  className="text-zinc-300 text-xl leading-10 whitespace-pre-line"
-                >
+                <div className="text-zinc-300 text-lg leading-9 whitespace-pre-line">
                   {displayedSummary}
-                </motion.p>
+                </div>
+
               </motion.div>
             )}
+
           </div>
 
           {/* RIGHT */}
 
           <div className="col-span-3">
-            <div className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-8 h-full overflow-y-auto">
-              
-              {/* ANIMATED AI CORE */}
 
-              <div className="flex justify-center mb-8">
-                <motion.div
-                  animate={{
-                    rotate: 360,
-                    scale: [1, 1.05, 1],
-                  }}
-                  transition={{
-                    rotate: {
-                      duration: 10,
-                      repeat: Infinity,
-                      ease: "linear",
-                    },
-                    scale: {
-                      duration: 2,
-                      repeat: Infinity,
-                    },
-                  }}
-                  className="relative"
-                >
-                  <motion.div
-                    animate={{
-                      rotate: -360,
-                    }}
-                    transition={{
-                      duration: 20,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="absolute inset-[-18px] rounded-full border border-cyan-400/20"
-                  />
+            <div className="bg-white/5 backdrop-blur-3xl border border-cyan-500/20 rounded-[40px] p-8 h-full overflow-y-auto">
+
+              {/* ROTATING LOGO */}
+
+              <div className="flex justify-center mb-12">
+
+                <div className="relative flex items-center justify-center w-[360px] h-[360px]">
+
+                  {/* ROTATION DOT */}
+
+                  <div className="absolute top-0 left-1/2 w-3 h-3 bg-white rounded-full z-50"></div>
+
+                  {/* OUTER SPINNING RING */}
 
                   <motion.div
                     animate={{
                       rotate: 360,
                     }}
                     transition={{
-                      duration: 15,
+                      duration: 18,
                       repeat: Infinity,
                       ease: "linear",
                     }}
-                    className="absolute inset-[-35px] rounded-full border border-green-400/10"
+                    className="
+                      absolute
+                      w-[360px]
+                      h-[360px]
+                      rounded-full
+                      border
+                      border-cyan-400/20
+                    "
                   />
 
-                  <div className="absolute inset-0 bg-cyan-400 blur-[120px] opacity-30 rounded-full"></div>
+                  {/* INNER SPINNING RING */}
 
-                  <Image
-                    src="/logo.jpg"
-                    alt="AI Core"
-                    width={150}
-                    height={150}
-                    className="relative rounded-full border border-cyan-400/30 shadow-[0_0_120px_rgba(0,255,255,0.25)]"
-                    priority
+                  <motion.div
+                    animate={{
+                      rotate: -360,
+                    }}
+                    transition={{
+                      duration: 10,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="
+                      absolute
+                      w-[290px]
+                      h-[290px]
+                      rounded-full
+                      border
+                      border-green-400/20
+                    "
                   />
-                </motion.div>
+
+                  {/* GLOW */}
+
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.15, 1],
+                      opacity: [0.4, 0.8, 0.4],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                    }}
+                    className="
+                      absolute
+                      w-[250px]
+                      h-[250px]
+                      bg-cyan-400/30
+                      blur-[120px]
+                      rounded-full
+                    "
+                  />
+
+                  {/* ACTUAL LOGO */}
+
+                  <motion.div
+                    animate={{
+                      rotate: 360,
+                      scale: [1, 1.05, 1],
+                    }}
+                    transition={{
+                      rotate: {
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "linear",
+                      },
+                      scale: {
+                        duration: 2,
+                        repeat: Infinity,
+                      },
+                    }}
+                    className="relative z-20"
+                  >
+
+                    <img
+                      src="/logo.jpg"
+                      alt="AI Core"
+                      className="
+                        w-[240px]
+                        h-[240px]
+                        rounded-full
+                        object-cover
+                        border
+                        border-cyan-400/40
+                        shadow-[0_0_120px_rgba(0,255,255,0.55)]
+                      "
+                    />
+
+                  </motion.div>
+
+                </div>
+
               </div>
 
               {/* METRICS */}
 
               <div className="space-y-6">
+
                 {metrics.map((metric, index) => (
                   <motion.div
+                    key={index}
                     whileHover={{
                       scale: 1.03,
                     }}
-                    key={index}
                     className="bg-cyan-500/5 border border-cyan-500/10 rounded-3xl p-6"
                   >
+
                     <div className="text-cyan-400 text-sm uppercase tracking-[0.35em] mb-3">
                       {metric[0]}
                     </div>
@@ -496,11 +614,16 @@ export default function Home() {
                     <div className="text-3xl font-black text-white">
                       {metric[1]}
                     </div>
+
                   </motion.div>
                 ))}
+
               </div>
+
             </div>
+
           </div>
+
         </div>
       </div>
     </main>

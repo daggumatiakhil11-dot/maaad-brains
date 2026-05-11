@@ -1,4 +1,15 @@
 {
+<<<<<<< HEAD
+  "name": "maaad-ai",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"cd backend && uvicorn main:app --reload\" \"cd frontend && npm run dev\""
+  },
+  "dependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
+=======
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
@@ -26,3 +37,4 @@
     "typescript": "^5"
   }
 }
+>>>>>>> acfa6a159032356e904d19f88a695e8a2ebceb5d

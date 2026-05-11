@@ -95,7 +95,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `https://your-render-url.onrender.com/search?query=${encodeURIComponent(query)}`
+        `https://maaad-brains.onrender.com/search?query=${encodeURIComponent(query)}`
       );
 
       const data = await response.json();

@@ -112,9 +112,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `https://maaad-backend.onrender.com/search?query=${encodeURIComponent(
-          query
-        )}`
+        `http://127.0.0.1:8000/search?query=${encodeURIComponent(query)}`
       );
 
       const data = await response.json();

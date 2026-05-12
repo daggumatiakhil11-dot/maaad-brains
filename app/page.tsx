@@ -112,7 +112,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `https://maaad-backend.onrender.com/search?query=${encodeURIComponent(
+        `http://127.0.0.1:8000/search?query=${encodeURIComponent(
           query
         )}`
       );
@@ -143,23 +143,53 @@ export default function Home() {
     }, 1500);
   };
 
-  // EXPORT PDF
+// EXPORT PDF
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
+const exportPDF = () => {
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
 
-    doc.setFontSize(22);
+  const pageHeight = doc.internal.pageSize.height;
 
-    doc.text("MAAAD BRAINS REPORT", 20, 20);
+  const margin = 20;
 
-    doc.setFontSize(12);
+  const maxWidth = 170;
 
-    const splitSummary = doc.splitTextToSize(summary, 170);
+  // TITLE
 
-    doc.text(splitSummary, 20, 40);
+  doc.setFontSize(24);
 
-    doc.save("MAAAD_BRAINS_REPORT.pdf");
-  };
+  doc.text("MAAAD BRAINS REPORT", margin, 20);
+
+  // BODY
+
+  doc.setFontSize(12);
+
+  const lines = doc.splitTextToSize(summary, maxWidth);
+
+  let y = 40;
+
+  lines.forEach((line: string) => {
+    // CREATE NEW PAGE
+
+    if (y > pageHeight - 20) {
+      doc.addPage();
+
+      y = 20;
+    }
+
+    doc.text(line, margin, y);
+
+    y += 8;
+  });
+
+  // SAVE FILE
+
+  doc.save("MAAAD_BRAINS_REPORT.pdf");
+};
 
   // VOICE SEARCH
 
